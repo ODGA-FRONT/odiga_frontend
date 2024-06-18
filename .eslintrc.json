@@ -4,10 +4,8 @@
   },
   "extends": [
     "next",
-    // 'next/core-web-vitals',
     "plugin:prettier/recommended",
     "plugin:@typescript-eslint/recommended",
-    // 'prettier',
     "plugin:react-hooks/recommended"
   ],
   "parser": "@typescript-eslint/parser",
