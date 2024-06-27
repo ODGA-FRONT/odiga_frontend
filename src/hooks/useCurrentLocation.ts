@@ -2,21 +2,30 @@ import { INITIAL_CENTER } from '@/app/(route)/map/_components/mapSection';
 import { Coordinates } from '@/types/map';
 import { useEffect, useState } from 'react';
 
-export const useCurrentLocation = (options = {}) => {
-  const [location, setLocation] = useState<Coordinates>();
+const LOCAL_STORAGE_KEY = 'currentLocation';
+
+export const useCurrentLocation = () => {
+  const [location, setLocation] = useState<Coordinates>(() => {
+    const cachedLocation = typeof window !== 'undefined' && localStorage.getItem(LOCAL_STORAGE_KEY);
+    return cachedLocation ? JSON.parse(cachedLocation) : INITIAL_CENTER;
+  });
   const [error, setError] = useState('');
 
   const handleSuccess = (pos: GeolocationPosition) => {
     const { latitude, longitude } = pos.coords;
+    const newLocation: Coordinates = [latitude, longitude];
 
-    setLocation([latitude, longitude]);
+    setLocation(newLocation);
+    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newLocation));
   };
 
   const handleError = (err: GeolocationPositionError) => {
     setLocation([...INITIAL_CENTER]);
+    setError('Unable to retrieve location.');
   };
 
-  useEffect(() => {
+  // 현재위치 갱신 함수
+  const refreshLocation = () => {
     const { geolocation } = navigator;
 
     if (!geolocation) {
@@ -24,8 +33,18 @@ export const useCurrentLocation = (options = {}) => {
       return;
     }
 
-    geolocation.getCurrentPosition(handleSuccess, handleError, options);
-  }, [options]);
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 5000,
+      maximumAge: 0,
+    };
 
-  return { location, error };
+    geolocation.getCurrentPosition(handleSuccess, handleError, options);
+  };
+
+  useEffect(() => {
+    refreshLocation();
+  }, []);
+
+  return { location, error, refreshLocation };
 };
