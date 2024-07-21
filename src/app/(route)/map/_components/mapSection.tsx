@@ -23,7 +23,8 @@ const MapSection = () => {
     const { latitude, longitude } = pos.coords;
     const newLocation: Coordinates = [latitude, longitude];
     currentLocationRef.current = newLocation;
-    addMarkerMap(currentLocationRef.current);
+    // return newLocation
+    addMarkerMap(newLocation);
   };
 
   const handleError = (err: GeolocationPositionError) => {
@@ -66,20 +67,9 @@ const MapSection = () => {
       const handleSuccess = (pos: GeolocationPosition) => {
         const { latitude, longitude } = pos.coords;
         const newLocation: Coordinates = [latitude, longitude];
-
-        if (map) {
-          const newPosition = new naver.maps.LatLng(...newLocation);
-          if (!markerRef.current) {
-            const marker = new naver.maps.Marker({
-              position: newPosition,
-              map: map,
-              zIndex: 999,
-            });
-            markerRef.current = marker;
-          } else {
-            markerRef.current.setPosition(newPosition);
-          }
-          map.setCenter(newPosition);
+        const currentLocation = addMarkerMap(newLocation);
+        if (currentLocation) {
+          map.setCenter(currentLocation);
         }
       };
 
@@ -90,6 +80,7 @@ const MapSection = () => {
         },
         options,
       );
+      refreshLocation();
     }
   };
 
@@ -122,10 +113,6 @@ const MapSection = () => {
       }
     }
   };
-
-  useEffect(() => {
-    refreshLocation();
-  }, []);
 
   useEffect(() => {
     return () => {
